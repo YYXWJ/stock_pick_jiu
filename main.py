@@ -5,10 +5,7 @@ from get_data import DataSource
 from datetime import datetime
 import pandas as pd
 from io import StringIO
-'''
-数据库结构
-
-'''
+import re,time
 
 
 def save60DaysData():
@@ -24,25 +21,41 @@ def save60DaysData():
     dataSource.setEndDate(dt01.strftime("%Y-%m-%d"))
     start_date = (datetime.today() + timedelta(days=-110)).strftime("%Y-%m-%d")  # 输出：2019-11-21
     dataSource.setStartDate(start_date)
-    conn = mysql.connector.connect(user='root', password='bytedance')
+    conn = mysql.connector.connect(user='root', password='bytedance', database='stocks', autocommit=True)
     cursor = conn.cursor()
-    i = 0
     for code in shareList:
-        if i >= 3:
-            break
-        i = i + 1
+        cursor.execute('create table if not exists stock_' + code + ' (date varchar(32),price FLOAT, zdfd FLOAT, zded FLOAT,cjl FLOAT,zhfu FLOAT, hslv FLOAT, lbi FLOAT, zgj FLOAT, zdj FLOAT, zgb FLOAT, jzc FLOAT, jlr FLOAT, mlil FLOAT, jlil FLOAT, fzl FLOAT, unique(date))')
         datas = dataSource.getDataByCode(code)
         datas = list(datas.split('\n'))
-        datas = datas[2:]
-        for item in datas:
-            item = item.strip()
-            if len(item) == 0:
-                continue
-            print("item: " + item)
-            df = pd.read_csv(StringIO(item))
-            print(df)
+        if '股票' in datas[1]:
+            del datas[1]
+        df = pd.read_csv(StringIO('\n'.join(datas)))
+        for i in range(0,len(df)):
+            times = time.strptime(df.tdate[i],'%Y-%m-%d')
+            times = time.strftime('%Y%m%d',times)
+            cursor.execute("insert into stock_" + code + '(date, price,zdfd,zded,cjl,zhfu,hslv,lbi,zgj,zdj,zgb,jzc,jlr,mlil,jlil,fzl) values (%s,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f)' % (times, df.price[i], df.zdfd[i], df.zded[i],df.cjl[i],df.zhfu[i],df.hslv[i],df.lbi[i],df.zgj[i],df.zdj[i], df.zgb[i],df.jzc[i],df.jlr[i],df.mlil[i],df.jlil[i],df.fzl[i]))
+    conn.close()
+    cursor.close()
+'''
+    数据库结构
 
-
+    需要的关键字段
+    price   float   最新价（元）
+    zdfd    float   涨跌幅度（%）
+    zded    float   涨跌额度（元）
+    cjl float   成交量（手）
+    zhfu    float   振幅（%）
+    hslv    float   换手率（%)
+    lbi float   量比
+    zgj float   最高价（元）
+    zdj float   最低价（元）
+    zgb float   总股本（股）
+    jzc float   净资产
+    jlr float   净利润
+    mlil    float   毛利率
+    jlil    float   净利率
+    fzl float   负债率
+    '''
 if __name__ == '__main__':
     save60DaysData()
     
@@ -50,6 +63,7 @@ if __name__ == '__main__':
     # analyzeShare = AnalyzeShare()
     # analyzeShare
     # analyzeShare.selectStockPriceNotRiseBytTradingVolumeIncreaseToday()
+
 
 
     # dataSource = DataSource()
@@ -68,3 +82,4 @@ if __name__ == '__main__':
     #         data = dataSource.getDataByCode('300579')
     #         dataSource.save(code, data)
     #         analyzeShare.selectStockPriceNotRiseBytTradingVolumeIncrease(code, data)
+
