@@ -1,24 +1,51 @@
 # 获取 前 20 天数据 并存储
 import mysql.connector
-
+from datetime import timedelta
 from get_data import DataSource
-
+from datetime import datetime
+import pandas as pd
+from io import StringIO
 '''
 数据库结构
 
 '''
-if __name__ == '__main__':
+
+
+def save60DaysData():
     # 获取数据，并存入数据库
     dataSource = DataSource()
     # 获取股票列表
     shareList = dataSource.getShareListLocal().split('\n')
     dataSource.setFields(['all'])
-    conn = mysql.connector.connect(user='root', password='Yy13693795561')
-
+    dt01 = datetime.today()
+    while dt01.isoweekday() > 5:
+        dt01 = dt01 + timedelta(days=-1)
+    # dataSource.setEndDate(str(dt01.date()))
+    dataSource.setEndDate(dt01.strftime("%Y-%m-%d"))
+    start_date = (datetime.today() + timedelta(days=-110)).strftime("%Y-%m-%d")  # 输出：2019-11-21
+    dataSource.setStartDate(start_date)
+    conn = mysql.connector.connect(user='root', password='bytedance')
     cursor = conn.cursor()
+    i = 0
     for code in shareList:
-        dataSource.getDataByCode(code)
+        if i >= 3:
+            break
+        i = i + 1
+        datas = dataSource.getDataByCode(code)
+        datas = list(datas.split('\n'))
+        datas = datas[2:]
+        for item in datas:
+            item = item.strip()
+            if len(item) == 0:
+                continue
+            print("item: " + item)
+            df = pd.read_csv(StringIO(item))
+            print(df)
 
+
+if __name__ == '__main__':
+    save60DaysData()
+    
 
     # analyzeShare = AnalyzeShare()
     # analyzeShare
@@ -41,4 +68,3 @@ if __name__ == '__main__':
     #         data = dataSource.getDataByCode('300579')
     #         dataSource.save(code, data)
     #         analyzeShare.selectStockPriceNotRiseBytTradingVolumeIncrease(code, data)
-

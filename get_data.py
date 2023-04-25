@@ -5,7 +5,7 @@ import os
 import pandas as pd
 
 
-token = '7e7d6e8a7d96eec07a09bb1f6070d8c8'
+token = 'b97b3a0f9dbdd4204ba70c7212d38ed1'
 url = 'http://api.waizaowang.com/doc/getStockHSADailyMarket'
 
 class DataSource(object):
@@ -24,19 +24,19 @@ class DataSource(object):
         self.codes = []
 
     def getShareList(self):
-        url = "http://api.waizaowang.com/doc/getBaseInfo?type=1&code=all&fields=code&export=4&token=7e7d6e8a7d96eec07a09bb1f6070d8c8"
+        url = "http://api.waizaowang.com/doc/getBaseInfo?type=1&code=all&fields=code&export=4&token=" + token
         ret = requests.get(url)
         return ret.text
 
     def getShareListLocal(self):
-        file = open('share_list.csv', 'r', encoding='utf-8')
+        file = open('share_list.txt', 'r', encoding='utf-8-sig')
         ret = file.read()
         file.close()
         return ret
 
     def getAndSaveSharelist(self):
         # 获取 A股 列表
-        url = "http://api.waizaowang.com/doc/getBaseInfo?type=1&code=all&fields=code&export=4&token=7e7d6e8a7d96eec07a09bb1f6070d8c8"
+        url = "http://api.waizaowang.com/doc/getBaseInfo?type=1&code=all&fields=code&export=4&token=" + token
         ret = requests.get(url)
         file = open('share_list.csv', 'w', encoding='utf-8')
         file.write(ret.text)
