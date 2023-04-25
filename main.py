@@ -17,7 +17,7 @@ if __name__ == '__main__':
     # save_data.saveTodayData()
     print('保存数据成功')
     # time.sleep(3)
-    ma_sum.calculate_ma_from_db('stock_000665',5)
+    ma_sum.calculate_ma_from_db('stock_000665',[5,10,30,60])
     # analyzeShare = AnalyzeShare()
     # analyzeShare
     # analyzeShare.selectStockPriceNotRiseBytTradingVolumeIncreaseToday()

@@ -1,8 +1,17 @@
-
-import mysql.connector
+import sql_connector
 import pandas as pd
-
-def calculate_ma_from_db(table, ma_cycle):
+import pandas as pd
+import datetime as dt
+from datetime import datetime
+def get_nth_workday(n):
+    '''
+     计算今天往前数第 n 个工作日
+    '''
+    today = dt.date.today()
+    workdays = pd.offsets.BDay(n)
+    result = (today - workdays).strftime('%Y%m%d')
+    return result
+def calculate_ma_from_db(table, maList):
     """
     从数据库中读取股票数据，并计算均线
     :param host: 数据库主机名或IP地址
@@ -13,7 +22,7 @@ def calculate_ma_from_db(table, ma_cycle):
     :param ma_list: 均线的天数列表
     :return: 包含均线的数据框
     """
-    conn = mysql.connector.connect(user='root', password='bytedance', database='stocks', autocommit=True)
+    conn = sql_connector.getConn()
     # 从数据库中读取股票数据
     sql = "SELECT date, price FROM {}".format(table)
     data = pd.read_sql(sql, conn)
@@ -21,6 +30,23 @@ def calculate_ma_from_db(table, ma_cycle):
     # 计算均线
     data['date'] = pd.to_datetime(data['date'])
     data.set_index('date', inplace=True)
-    data['ma{}'.format(ma_cycle)] = data['price'].rolling(window=ma_cycle).mean()
+    for i in maList:
+        data['ma{}'.format(i)] = data['price'].rolling(window=i).mean()
     print(data)
     return data
+
+def is_ma_60_up(code):
+    conn = sql_connector.getConn()
+    cursor = conn.cursor()
+    cursor.execute('select price from stock_' + code+ ' where date=' +datetime.today().strftime("%Y%m%d") +';')
+    today_price= 0
+    sixty_price = 0
+    for row in cursor:
+        today_price = row[0]
+    cursor.execute('select price from stock_' + code + ' where date=' + get_nth_workday(60) + ';')
+    for row in cursor:
+        sixty_price = row[0]
+    return today_price > sixty_price
+
+if __name__ == '__main__':
+    print(is_ma_60_up('000665'))
