@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import show_data
 from datetime import datetime
-from gupiao.get_data import DataSource
+from get_data import DataSource
 from datetime import timedelta
 from io import StringIO
 

@@ -1,7 +1,7 @@
 # 获取 前 20 天数据 并存储
 import mysql.connector
 
-from gupiao.get_data import DataSource
+from get_data import DataSource
 
 '''
 数据库结构
