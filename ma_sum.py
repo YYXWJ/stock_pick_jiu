@@ -3,16 +3,20 @@ import pandas as pd
 import pandas as pd
 import datetime as dt
 from datetime import datetime
-def get_nth_workday(n):
+
+
+def get_nth_workday(date, n):
     '''
-     计算今天往前数第 n 个工作日
+     计算 date 往前数第 n 个工作日
     '''
-    today = dt.date.today()
+    date_obj = datetime.strptime(str(date), "%Y%m%d").date()
     if n == 0:
-        return today.strftime('%Y%m%d')
+        return date
     workdays = pd.offsets.BDay(n)
-    result = (today - workdays).strftime('%Y%m%d')
+    result = (date_obj - workdays).strftime('%Y%m%d')
     return result
+
+
 def calculate_ma_from_db(table, maList):
     """
     从数据库中读取股票数据，并计算均线
@@ -36,49 +40,50 @@ def calculate_ma_from_db(table, maList):
         data['ma{}'.format(i)] = data['price'].rolling(window=i).mean()
     return data
 
-def is_ma_60_up(code):
+
+def is_ma_60_up(code, date):
     conn = sql_connector.getConn()
     cursor = conn.cursor()
-    cursor.execute('select price from stock_' + code+ ' where date=' +datetime.today().strftime("%Y%m%d") +';')
-    today_price= 0
+    cursor.execute('select price from stock_' + code + ' where date=' + date + ';')
+    today_price = 0
     sixty_price = 0
     for row in cursor:
         today_price = row[0]
-    cursor.execute('select price from stock_' + code + ' where date=' + get_nth_workday(60) + ';')
+    cursor.execute('select price from stock_' + code + ' where date=' + get_nth_workday(date, 60) + ';')
     for row in cursor:
         sixty_price = row[0]
     return today_price > sixty_price
 
-def is_price_low_then_ma_60(code):
+
+def is_price_low_then_ma_60(code, date):
     conn = sql_connector.getConn()
     cursor = conn.cursor()
-    ma_60= calculate_ma_from_db('stock_' +code ,[60])['ma60'][-1]
+    ma_60 = calculate_ma_from_db('stock_' + code, [60])['ma60'][date]
     price = 0
-    cursor.execute('select price from stock_' + code + ' where date=' + datetime.today().strftime("%Y%m%d") + ';')
+    cursor.execute('select price from stock_' + code + ' where date=' + date + ';')
     for row in cursor:
         price = row[0]
-
+    cursor.close()
+    conn.close()
     return price < ma_60
 
-def is_price_low_then_ma_60_this_week(code):
+
+def is_price_low_then_ma_60_this_week(code, date):
     # 今天一定要下穿60线
-    if not is_price_low_then_ma_60(code):
+    if not is_price_low_then_ma_60(code, date):
         return False
 
     conn = sql_connector.getConn()
     cursor = conn.cursor()
     ma_60 = calculate_ma_from_db('stock_' + code, [60])['ma60']
-    for i in range(1,6):
-        day = get_nth_workday(i)
+    for i in range(1, 6):
+        day = get_nth_workday(date, i)
         cursor.execute('select price from stock_' + code + ' where date=' + day + ';')
         price = 0
         for row in cursor:
             price = row[0]
 
-        ma_price = ma_60[-(i+1)]
+        ma_price = ma_60[day]
         if ma_price < price:
             return True
     return False
-
-if __name__ == '__main__':
-    print(is_ma_60_up('000665'))
