@@ -32,7 +32,6 @@ def calculate_ma_from_db(table, maList):
     data.set_index('date', inplace=True)
     for i in maList:
         data['ma{}'.format(i)] = data['price'].rolling(window=i).mean()
-    print(data)
     return data
 
 def is_ma_60_up(code):
@@ -47,6 +46,17 @@ def is_ma_60_up(code):
     for row in cursor:
         sixty_price = row[0]
     return today_price > sixty_price
+
+def is_price_low_then_ma_60(code):
+    conn = sql_connector.getConn()
+    cursor = conn.cursor()
+    ma_60= calculate_ma_from_db('stock_' +code ,[60])['ma60'][-1]
+    price = 0
+    cursor.execute('select price from stock_' + code + ' where date=' + datetime.today().strftime("%Y%m%d") + ';')
+    for row in cursor:
+        price = row[0]
+
+    return price < ma_60
 
 if __name__ == '__main__':
     print(is_ma_60_up('000665'))

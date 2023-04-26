@@ -66,7 +66,7 @@ def saveTodayData():
         dt01 = dt01 + timedelta(days=-1)
     dataSource.setEndDate(dt01.strftime("%Y-%m-%d"))
     dataSource.setStartDate(dt01.strftime("%Y-%m-%d"))
-    conn = mysql.connector.connect(user='root', password='bytedance', database='stocks', autocommit=True)
+    conn = sql_connector.getConn()
     cursor = conn.cursor()
     for code in shareList:
         cursor.execute('create table if not exists stock_' + code + ' (date varchar(32),price FLOAT, zdfd FLOAT, zded FLOAT,cjl FLOAT,zhfu FLOAT, hslv FLOAT, lbi FLOAT, zgj FLOAT, zdj FLOAT, zgb FLOAT, jzc FLOAT, jlr FLOAT, mlil FLOAT, jlil FLOAT, fzl FLOAT, unique(date))')
