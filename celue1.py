@@ -13,7 +13,7 @@ def get_result():
         code_mlil = mlil.get_mlil(code)
         if code_mlil < 40:
             continue
-        if not ma_sum.is_price_low_then_ma_60(code):
+        if not ma_sum.is_price_low_then_ma_60_this_week(code):
             continue
         else:
             result.append(code)

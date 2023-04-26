@@ -8,6 +8,8 @@ def get_nth_workday(n):
      计算今天往前数第 n 个工作日
     '''
     today = dt.date.today()
+    if n == 0:
+        return today.strftime('%Y%m%d')
     workdays = pd.offsets.BDay(n)
     result = (today - workdays).strftime('%Y%m%d')
     return result
@@ -57,6 +59,26 @@ def is_price_low_then_ma_60(code):
         price = row[0]
 
     return price < ma_60
+
+def is_price_low_then_ma_60_this_week(code):
+    # 今天一定要下穿60线
+    if not is_price_low_then_ma_60(code):
+        return False
+
+    conn = sql_connector.getConn()
+    cursor = conn.cursor()
+    ma_60 = calculate_ma_from_db('stock_' + code, [60])['ma60']
+    for i in range(1,6):
+        day = get_nth_workday(i)
+        cursor.execute('select price from stock_' + code + ' where date=' + day + ';')
+        price = 0
+        for row in cursor:
+            price = row[0]
+
+        ma_price = ma_60[-(i+1)]
+        if ma_price < price:
+            return True
+    return False
 
 if __name__ == '__main__':
     print(is_ma_60_up('000665'))
