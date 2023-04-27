@@ -31,7 +31,28 @@ def get_mlil(code, date):
     return mlil
 
 
+def get_begin_date(code):
+    conn = sql_connector.getConn()
+    cursor = conn.cursor()
+    cursor.execute('select date from stock_' + code + ' order by date ASC;')
+    for row in cursor:
+        return row[0]
 
+def get_end_date(code):
+    conn = sql_connector.getConn()
+    cursor = conn.cursor()
+    cursor.execute('select date from stock_' + code + ' order by date DESC;')
+    for row in cursor:
+        return row[0]
+
+def dates_Between(startDate, endDate):
+    date1 = datetime.strptime(startDate, '%Y%m%d')
+    date2 = datetime.strptime(endDate, '%Y%m%d')
+    # Calculate the difference between the two dates
+    delta = date2 - date1
+    # Extract the number of days from the timedelta object
+    days_between = delta.days
+    return days_between
 def get_nth_workday(date, n):
     # 获取 A 股交易日历
     dataSource = DataSource()
@@ -79,4 +100,4 @@ def get_bth_workday(date, n):
 
 if __name__ == '__main__':
     date_str = '20230427'
-    print(get_nth_workday(date_str, 50))
+    getLastDate('000665')
