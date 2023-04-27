@@ -14,7 +14,6 @@ if __name__ == '__main__':
     ret = celue1.get_result(util.get_nth_workday('20230426', 60))
     for code in ret:
         print('code is: ' + code)
-
     if len(ret) == 0:
         print('没有找到符合策略的股票')
     else:

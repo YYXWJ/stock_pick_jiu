@@ -3,7 +3,6 @@ import datetime as dt
 import sql_connector
 import pandas as pd
 import log
-import tushare as ts
 from get_data import DataSource
 
 def get_price(code ,date):

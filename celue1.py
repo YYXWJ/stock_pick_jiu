@@ -2,7 +2,7 @@ import ma_sum
 import util
 from get_data import DataSource
 from datetime import datetime
-
+import math
 '''
 60日均线向上，股价本周下穿60日均线，毛利率40%以上
 '''
@@ -10,10 +10,12 @@ from datetime import datetime
 def backtesting(list, date, during):
     for code in list:
         price = util.get_price(code, date)
-        price_end = util.get_price(code, util.get_bth_workday())
-        if price_end > price: 
-            price("code: " + code +'; '+ 'rise: ' + (str((price_end - price)/ price)))
-            
+        price_end = util.get_price(code, util.get_bth_workday(date, 60))
+        rise = (price_end - price) / price
+        print("开始日期 is %s, 结束日期 is %s, code: %s ;rise: %.2f" % (str(date),str(util.get_bth_workday(date, 60)), code, rise))
+
+
+
 def get_result(date=datetime.today().strftime("%Y%m%d")):
     result = []
     data_source = DataSource()
