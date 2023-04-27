@@ -7,7 +7,7 @@ import pandas as pd
 
 token = 'b97b3a0f9dbdd4204ba70c7212d38ed1'
 url = 'http://api.waizaowang.com/doc/getStockHSADailyMarket'
-
+dateUrl = 'http://api.waizaowang.com/doc/getStockTradeDate'
 class DataSource(object):
 
 
@@ -77,6 +77,11 @@ class DataSource(object):
         file.write(data)
         file.close()
 
+    def getStockTradeDate(self, startDate, endDate):
+        realUrl = dateUrl + '?' + 'startDate=' + startDate + '&endDate=' + endDate + '&split=2&export=4&token=' + token + '&filter=isopen=1&fields=tdate' 
+        ret = requests.get(realUrl)
+        return ret.text
+
 def date_add(date_str, days_count=1):
     date_list = datetime.strptime(date_str, "%Y-%m-%d")
     y, m, d = date_list[:3]
@@ -98,5 +103,5 @@ if __name__ == '__main__':
     # print(file.head(5))
 
     dataSource = DataSource()
-    ret = dataSource.getAndSaveSharelist()
-
+    # ret = dataSource.getAndSaveSharelist()
+    dataSource.getStockTradeDate('2023-04-27', '2023-04-28')

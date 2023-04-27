@@ -1,21 +1,8 @@
 import sql_connector
 import pandas as pd
-import pandas as pd
 import datetime as dt
 from datetime import datetime
-
-
-def get_nth_workday(date, n):
-    '''
-     计算 date 往前数第 n 个工作日
-    '''
-    date_obj = datetime.strptime(str(date), "%Y%m%d").date()
-    if n == 0:
-        return date
-    workdays = pd.offsets.BDay(n)
-    result = (date_obj - workdays).strftime('%Y%m%d')
-    return result
-
+import util
 
 def calculate_ma_from_db(table, maList):
     """
@@ -49,9 +36,11 @@ def is_ma_60_up(code, date):
     sixty_price = 0
     for row in cursor:
         today_price = row[0]
-    cursor.execute('select price from stock_' + code + ' where date=' + get_nth_workday(date, 60) + ';')
+    cursor.execute('select price from stock_' + code + ' where date=' + util.get_nth_workday(date, 60) + ';')
     for row in cursor:
         sixty_price = row[0]
+    cursor.close()
+    conn.close()
     return today_price > sixty_price
 
 
@@ -77,7 +66,7 @@ def is_price_low_then_ma_60_this_week(code, date):
     cursor = conn.cursor()
     ma_60 = calculate_ma_from_db('stock_' + code, [60])['ma60']
     for i in range(1, 6):
-        day = get_nth_workday(date, i)
+        day = util.get_nth_workday(date, i)
         cursor.execute('select price from stock_' + code + ' where date=' + day + ';')
         price = 0
         for row in cursor:
@@ -86,4 +75,6 @@ def is_price_low_then_ma_60_this_week(code, date):
         ma_price = ma_60[day]
         if ma_price < price:
             return True
+    cursor.close()
+    conn.close()
     return False

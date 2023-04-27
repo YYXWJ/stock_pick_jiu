@@ -36,7 +36,7 @@ def save60DaysData():
         dt01 = dt01 + timedelta(days=-1)
     # dataSource.setEndDate(str(dt01.date()))
     dataSource.setEndDate(dt01.strftime("%Y-%m-%d"))
-    start_date = (datetime.today() + timedelta(days=-110)).strftime("%Y-%m-%d")  # 输出：2019-11-21
+    start_date = (datetime.today() + timedelta(days=-200)).strftime("%Y-%m-%d")  # 输出：2019-11-21
     dataSource.setStartDate(start_date)
     conn = sql_connector.getConn()
     cursor = conn.cursor()
