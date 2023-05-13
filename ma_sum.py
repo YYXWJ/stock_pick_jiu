@@ -3,7 +3,6 @@ import pandas as pd
 import datetime as dt
 from datetime import datetime
 import util
-
 def calculate_ma_from_db(table, maList):
     """
     从数据库中读取股票数据，并计算均线
@@ -17,7 +16,7 @@ def calculate_ma_from_db(table, maList):
     """
     conn = sql_connector.getConn()
     # 从数据库中读取股票数据
-    sql = "SELECT date, price FROM {}".format(table)
+    sql = "SELECT date, price FROM {} order by date asc".format(table)
     data = pd.read_sql(sql, conn)
 
     # 计算均线
@@ -28,53 +27,66 @@ def calculate_ma_from_db(table, maList):
     return data
 
 
-def is_ma_60_up(code, date):
-    conn = sql_connector.getConn()
-    cursor = conn.cursor()
-    cursor.execute('select price from stock_' + code + ' where date=' + date + ';')
-    today_price = 0
-    sixty_price = 0
-    for row in cursor:
-        today_price = row[0]
-    cursor.execute('select price from stock_' + code + ' where date=' + util.get_nth_workday(date, 60) + ';')
-    for row in cursor:
-        sixty_price = row[0]
-    cursor.close()
-    conn.close()
-    return today_price > sixty_price
-
-
-def is_price_low_then_ma_60(code, date):
-    conn = sql_connector.getConn()
-    cursor = conn.cursor()
-    ma_60 = calculate_ma_from_db('stock_' + code, [60])['ma60'][date]
-    price = 0
-    cursor.execute('select price from stock_' + code + ' where date=' + date + ';')
-    for row in cursor:
-        price = row[0]
-    cursor.close()
-    conn.close()
-    return price < ma_60
-
-
-def is_price_low_then_ma_60_this_week(code, date):
-    # 今天一定要下穿60线
-    if not is_price_low_then_ma_60(code, date):
+def is_ma_60_up(data_dict, date):
+    try:
+        today_price = data_dict[date].price
+        sixty_price = data_dict[util.get_nth_workday(date, 60)].price
+        return today_price > sixty_price
+    except Exception as e:
         return False
 
-    conn = sql_connector.getConn()
-    cursor = conn.cursor()
-    ma_60 = calculate_ma_from_db('stock_' + code, [60])['ma60']
-    for i in range(1, 6):
-        day = util.get_nth_workday(date, i)
-        cursor.execute('select price from stock_' + code + ' where date=' + day + ';')
-        price = 0
-        for row in cursor:
-            price = row[0]
 
-        ma_price = ma_60[day]
-        if ma_price < price:
-            return True
-    cursor.close()
-    conn.close()
-    return False
+def is_price_low_then_ma_60(data_dict, ma_60, date):
+    price = 0
+    try:
+        price = data_dict[date].price
+    except Exception:
+        return False
+    return price < ma_60[date]
+
+
+def is_price_low_then_ma_60_this_week(data_dict, ma_60, date):
+    try:
+        # 今天一定要下穿60线
+        if not is_price_low_then_ma_60(data_dict, ma_60, date):
+            return False
+        ret = False
+        for i in range(1, 6):
+            day = util.get_nth_workday(date, i)
+            price = 0
+            try:
+                price = data_dict[day].price
+            except Exception:
+                price = 0
+            if ma_60.__contains__(key=day):
+                ma_price = ma_60[day]
+                if ma_price < price:
+                    ret = True
+                    break
+            else:
+                ret = False
+    except Exception:
+        print('is_price_low_then_ma_60_this_week 异常')
+    return ret
+
+
+def is_price_high_then_ma_60_ten_day(data_dict, ma_60, date):
+    try:
+        ret = False
+        for i in range(1, 10):
+            day = util.get_nth_workday(date, i)
+            price = 0
+            try:
+                price = data_dict[day].price
+            except Exception:
+                price = 0
+            if ma_60.__contains__(key=day):
+                ma_price = ma_60[day]
+                if ma_price < price:
+                    ret = True
+                    break
+            else:
+                ret = False
+    except Exception:
+        print('is_price_low_then_ma_60_this_week 异常')
+    return ret

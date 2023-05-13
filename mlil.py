@@ -13,5 +13,4 @@ def get_mlil(code, date):
     for row in cursor:
         mlil = row[0]
     cursor.close()
-    conn.close()
     return mlil

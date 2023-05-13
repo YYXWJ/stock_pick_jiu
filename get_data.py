@@ -5,7 +5,7 @@ import os
 import pandas as pd
 
 
-token = 'b97b3a0f9dbdd4204ba70c7212d38ed1'
+token = 'ada30e66c415471bd786cf4a387d4574'
 url = 'http://api.waizaowang.com/doc/getStockHSADailyMarket'
 dateUrl = 'http://api.waizaowang.com/doc/getStockTradeDate'
 class DataSource(object):
@@ -22,7 +22,7 @@ class DataSource(object):
         self.export=4
         self.fields = []
         self.codes = []
-
+        self.stockTradeDate = None
     def getShareList(self):
         url = "http://api.waizaowang.com/doc/getBaseInfo?type=1&code=all&fields=code&export=4&token=" + token
         ret = requests.get(url)
